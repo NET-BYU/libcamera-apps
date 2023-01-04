@@ -82,7 +82,7 @@ static void event_loop(LibcameraJpegApp &app)
 			StreamInfo info = app.GetStreamInfo(stream);
 			CompletedRequestPtr &payload = std::get<CompletedRequestPtr>(msg.payload);
 			const std::vector<libcamera::Span<uint8_t>> mem = app.Mmap(payload->buffers[stream]);
-			jpeg_save(mem, info, payload->metadata, options->output, app.CameraId(), options);
+			jpeg_save(mem, info, payload->metadata, "banana.jpg", app.CameraId(), options);
 			return;
 		}
 	}
@@ -96,11 +96,6 @@ int main(int argc, char *argv[])
 		StillOptions *options = app.GetOptions();
 		if (options->Parse(argc, argv))
 		{
-			if (options->verbose >= 2)
-				options->Print();
-			if (options->output.empty())
-				throw std::runtime_error("output file name required");
-
 			event_loop(app);
 		}
 	}
