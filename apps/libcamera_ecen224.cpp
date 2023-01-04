@@ -23,13 +23,6 @@ public:
 	StillOptions *GetOptions() const { return static_cast<StillOptions *>(options_.get()); }
 };
 
-// TODO:
-// 	x Remove app
-//	x How not to parse options
-// 	x Save to memory not file
-//	x Figure out how to save data to a image
-// 	- Figure out how to compile this as a library
-
 struct ImageHeader
 {
 	uint32_t size = sizeof(ImageHeader);
@@ -62,7 +55,7 @@ LibcameraJpegApp app;
 Stream *stream;
 StreamInfo info;
 
-static void camera_init()
+void camera_init()
 {
 	StillOptions *options = app.GetOptions();
 	options->Parse(1, {NULL});
@@ -123,7 +116,7 @@ void save_to_bmp(uint8_t* mem, std::string const &filename)
 	}
 }
 
-static int camera_get_still(uint8_t* buf)
+int camera_get_still(uint8_t* buf)
 {
 	for (;;)
 	{
@@ -163,15 +156,15 @@ static int camera_get_still(uint8_t* buf)
 	}
 }
 
-static unsigned int camera_get_width() {
+unsigned int camera_get_width() {
 	return info.width;
 }
 
-static unsigned int camera_get_height() {
+unsigned int camera_get_height() {
 	return info.height;
 }
 
-static void camera_exit()
+void camera_exit()
 {
 	app.StopCamera();
 }
