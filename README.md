@@ -6,6 +6,27 @@ Build
 -----
 For usage and build instructions, see the official Raspberry Pi documenation pages [here.](https://www.raspberrypi.com/documentation/computers/camera_software.html#building-libcamera-and-libcamera-apps)
 
+```bash
+# Install dependencies for libcamera
+sudo apt install -y libcamera-dev libjpeg-dev libtiff5-dev
+
+# Install dependencies for libcamera-apps
+sudo apt install -y cmake libboost-program-options-dev libdrm-dev libexif-dev
+
+# Build libcamera-apps
+cd
+git clone https://github.com/raspberrypi/libcamera-apps.git
+cd libcamera-apps
+mkdir build
+cd build
+cmake .. -DENABLE_DRM=1 -DENABLE_X11=0 -DENABLE_QT=0 -DENABLE_OPENCV=0 -DENABLE_TFLITE=0
+make -j1
+
+# Install
+sudo make install
+sudo ldconfig # this is only necessary on the first build
+```
+
 License
 -------
 
