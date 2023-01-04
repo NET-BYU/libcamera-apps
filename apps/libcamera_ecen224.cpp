@@ -18,15 +18,9 @@ using libcamera::Stream;
 class LibcameraJpegApp : public LibcameraApp
 {
 public:
-	LibcameraJpegApp()
-		: LibcameraApp(std::make_unique<StillOptions>())
-	{
-	}
+	LibcameraJpegApp() : LibcameraApp(std::make_unique<StillOptions>()) {}
 
-	StillOptions *GetOptions() const
-	{
-		return static_cast<StillOptions *>(options_.get());
-	}
+	StillOptions *GetOptions() const { return static_cast<StillOptions *>(options_.get()); }
 };
 
 // TODO:
@@ -37,7 +31,8 @@ public:
 
 LibcameraJpegApp app;
 
-static void camera_init() {
+static void camera_init()
+{
 	app.OpenCamera();
 	app.ConfigureStill();
 	app.StartCamera();
@@ -62,12 +57,12 @@ static void camera_get_still(std::string filename)
 		{
 			return;
 		}
-		
-		if (msg.type != LibcameraApp::MsgType::RequestComplete) 
+
+		if (msg.type != LibcameraApp::MsgType::RequestComplete)
 		{
 			throw std::runtime_error("unrecognised message!");
 		}
-			
+
 		LOG(1, "Still capture image received");
 
 		Stream *stream = app.StillStream();
@@ -79,7 +74,8 @@ static void camera_get_still(std::string filename)
 	}
 }
 
-static void camera_exit() {
+static void camera_exit()
+{
 	app.StopCamera();
 }
 
