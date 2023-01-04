@@ -29,14 +29,17 @@ public:
 	}
 };
 
-// The main even loop for the application.
 
-static void event_loop(LibcameraJpegApp &app)
-{
-	StillOptions const *options = app.GetOptions();
+static void camera_init(LibcameraJpegApp &app) {
 	app.OpenCamera();
 	app.ConfigureStill();
 	app.StartCamera();
+}
+
+
+static void camera_get_still(LibcameraJpegApp &app)
+{
+	StillOptions const *options = app.GetOptions();
 
 	for (;;)
 	{
@@ -59,7 +62,6 @@ static void event_loop(LibcameraJpegApp &app)
 			throw std::runtime_error("unrecognised message!");
 		}
 			
-		app.StopCamera();
 		LOG(1, "Still capture image received");
 
 		Stream *stream = app.StillStream();
@@ -71,6 +73,10 @@ static void event_loop(LibcameraJpegApp &app)
 	}
 }
 
+static void camera_exit(LibcameraJpegApp &app) {
+	app.StopCamera();
+}
+
 int main(int argc, char *argv[])
 {
 	try
@@ -79,7 +85,9 @@ int main(int argc, char *argv[])
 		StillOptions *options = app.GetOptions();
 		if (options->Parse(argc, argv))
 		{
-			event_loop(app);
+			camera_init(app);
+			camera_get_still(app);
+			camera_exit(app);
 		}
 	}
 	catch (std::exception const &e)
