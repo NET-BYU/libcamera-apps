@@ -35,9 +35,8 @@ static void event_loop(LibcameraJpegApp &app)
 {
 	StillOptions const *options = app.GetOptions();
 	app.OpenCamera();
-	app.ConfigureViewfinder();
+	app.ConfigureStill();
 	app.StartCamera();
-	auto start_time = std::chrono::high_resolution_clock::now();
 
 	for (;;)
 	{
@@ -49,37 +48,19 @@ static void event_loop(LibcameraJpegApp &app)
 			app.StartCamera();
 			continue;
 		}
-		
+
 		if (msg.type == LibcameraApp::MsgType::Quit)
 		{
 			return;
 		}
-		else if (msg.type != LibcameraApp::MsgType::RequestComplete) 
+		
+		if (msg.type != LibcameraApp::MsgType::RequestComplete) 
 		{
 			throw std::runtime_error("unrecognised message!");
 		}
 			
-
-		// In viewfinder mode, simply run until the timeout. When that happens, switch to
-		// capture mode.
-		if (app.ViewfinderStream())
-		{
-			auto now = std::chrono::high_resolution_clock::now();
-			if (options->timeout && now - start_time > std::chrono::milliseconds(options->timeout))
-			{
-				app.StopCamera();
-				app.Teardown();
-				app.ConfigureStill();
-				app.StartCamera();
-			}
-			else
-			{
-				CompletedRequestPtr &completed_request = std::get<CompletedRequestPtr>(msg.payload);
-				app.ShowPreview(completed_request, app.ViewfinderStream());
-			}
-		}
 		// In still capture mode, save a jpeg and quit.
-		else if (app.StillStream())
+		if (app.StillStream())
 		{
 			app.StopCamera();
 			LOG(1, "Still capture image received");
