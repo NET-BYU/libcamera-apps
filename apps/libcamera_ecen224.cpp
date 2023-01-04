@@ -49,10 +49,16 @@ static void event_loop(LibcameraJpegApp &app)
 			app.StartCamera();
 			continue;
 		}
+		
 		if (msg.type == LibcameraApp::MsgType::Quit)
+		{
 			return;
-		else if (msg.type != LibcameraApp::MsgType::RequestComplete)
+		}
+		else if (msg.type != LibcameraApp::MsgType::RequestComplete) 
+		{
 			throw std::runtime_error("unrecognised message!");
+		}
+			
 
 		// In viewfinder mode, simply run until the timeout. When that happens, switch to
 		// capture mode.
