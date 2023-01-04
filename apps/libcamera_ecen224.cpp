@@ -59,19 +59,15 @@ static void event_loop(LibcameraJpegApp &app)
 			throw std::runtime_error("unrecognised message!");
 		}
 			
-		// In still capture mode, save a jpeg and quit.
-		if (app.StillStream())
-		{
-			app.StopCamera();
-			LOG(1, "Still capture image received");
+		app.StopCamera();
+		LOG(1, "Still capture image received");
 
-			Stream *stream = app.StillStream();
-			StreamInfo info = app.GetStreamInfo(stream);
-			CompletedRequestPtr &payload = std::get<CompletedRequestPtr>(msg.payload);
-			const std::vector<libcamera::Span<uint8_t>> mem = app.Mmap(payload->buffers[stream]);
-			jpeg_save(mem, info, payload->metadata, "banana.jpg", app.CameraId(), options);
-			return;
-		}
+		Stream *stream = app.StillStream();
+		StreamInfo info = app.GetStreamInfo(stream);
+		CompletedRequestPtr &payload = std::get<CompletedRequestPtr>(msg.payload);
+		const std::vector<libcamera::Span<uint8_t>> mem = app.Mmap(payload->buffers[stream]);
+		jpeg_save(mem, info, payload->metadata, "banana.jpg", app.CameraId(), options);
+		return;
 	}
 }
 
