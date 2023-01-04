@@ -25,7 +25,7 @@ public:
 
 // TODO:
 // 	x Remove app
-//	- How not to parse options
+//	x How not to parse options
 // 	- Save to memory not file
 // 	- Figure out how to compile this as a library
 
@@ -33,6 +33,9 @@ LibcameraJpegApp app;
 
 static void camera_init()
 {
+	StillOptions *options = app.GetOptions();
+	options->Parse(1, {NULL});
+
 	app.OpenCamera();
 	app.ConfigureStill();
 	app.StartCamera();
@@ -84,21 +87,18 @@ int main(int argc, char *argv[])
 	try
 	{
 		std::chrono::milliseconds duration(500);
-		StillOptions *options = app.GetOptions();
-		if (options->Parse(argc, argv))
-		{
-			camera_init();
-			camera_get_still("frame1.jpg");
-			std::this_thread::sleep_for(duration);
-			camera_get_still("frame2.jpg");
-			std::this_thread::sleep_for(duration);
-			camera_get_still("frame3.jpg");
-			std::this_thread::sleep_for(duration);
-			camera_get_still("frame4.jpg");
-			std::this_thread::sleep_for(duration);
-			camera_get_still("frame5.jpg");
-			camera_exit();
-		}
+
+		camera_init();
+		camera_get_still("frame1.jpg");
+		std::this_thread::sleep_for(duration);
+		camera_get_still("frame2.jpg");
+		std::this_thread::sleep_for(duration);
+		camera_get_still("frame3.jpg");
+		std::this_thread::sleep_for(duration);
+		camera_get_still("frame4.jpg");
+		std::this_thread::sleep_for(duration);
+		camera_get_still("frame5.jpg");
+		camera_exit();
 	}
 	catch (std::exception const &e)
 	{
