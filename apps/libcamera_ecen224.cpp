@@ -37,7 +37,7 @@ static void camera_init(LibcameraJpegApp &app) {
 }
 
 
-static void camera_get_still(LibcameraJpegApp &app)
+static void camera_get_still(LibcameraJpegApp &app, std::string filename)
 {
 	StillOptions const *options = app.GetOptions();
 
@@ -68,7 +68,7 @@ static void camera_get_still(LibcameraJpegApp &app)
 		StreamInfo info = app.GetStreamInfo(stream);
 		CompletedRequestPtr &payload = std::get<CompletedRequestPtr>(msg.payload);
 		const std::vector<libcamera::Span<uint8_t>> mem = app.Mmap(payload->buffers[stream]);
-		jpeg_save(mem, info, payload->metadata, "banana.jpg", app.CameraId(), options);
+		jpeg_save(mem, info, payload->metadata, filename, app.CameraId(), options);
 		return;
 	}
 }
@@ -81,12 +81,21 @@ int main(int argc, char *argv[])
 {
 	try
 	{
+		std::chrono::milliseconds duration(500);
 		LibcameraJpegApp app;
 		StillOptions *options = app.GetOptions();
 		if (options->Parse(argc, argv))
 		{
 			camera_init(app);
-			camera_get_still(app);
+			camera_get_still(app, "frame1.jpg");
+			std::this_thread::sleep_for(duration);
+			camera_get_still(app, "frame2.jpg");
+			std::this_thread::sleep_for(duration);
+			camera_get_still(app, "frame3.jpg");
+			std::this_thread::sleep_for(duration);
+			camera_get_still(app, "frame4.jpg");
+			std::this_thread::sleep_for(duration);
+			camera_get_still(app, "frame5.jpg");
 			camera_exit(app);
 		}
 	}
