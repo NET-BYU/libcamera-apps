@@ -59,6 +59,8 @@ struct FileHeader
 static_assert(sizeof(FileHeader) == 16, "FileHeader size wrong");
 
 LibcameraJpegApp app;
+Stream *stream;
+StreamInfo info;
 
 static void camera_init()
 {
@@ -71,10 +73,12 @@ static void camera_init()
 	app.OpenCamera();
 	app.ConfigureStill(still_flags);
 	app.StartCamera();
+
+	stream = app.StillStream();
+	info = app.GetStreamInfo(stream);
 }
 
-void save_to_bmp(uint8_t* mem, unsigned int width, unsigned int height, unsigned int stride,
-			  std::string const &filename)
+void save_to_bmp(uint8_t* mem, std::string const &filename)
 {
 	FILE *fp = filename == "-" ? stdout : fopen(filename.c_str(), "wb");
 
@@ -83,7 +87,7 @@ void save_to_bmp(uint8_t* mem, unsigned int width, unsigned int height, unsigned
 
 	try
 	{
-		unsigned int line = width * 3;
+		unsigned int line = info.width * 3;
 		unsigned int pitch = (line + 3) & ~3; // lines are multiples of 4 bytes
 		unsigned int pad = pitch - line;
 		uint8_t padding[3] = {};
@@ -91,16 +95,16 @@ void save_to_bmp(uint8_t* mem, unsigned int width, unsigned int height, unsigned
 
 		FileHeader file_header;
 		ImageHeader image_header;
-		file_header.filesize = file_header.offset + height * pitch;
-		image_header.width = width;
-		image_header.height = -height; // make image come out the right way up
+		file_header.filesize = file_header.offset + info.height * pitch;
+		image_header.width = info.width;
+		image_header.height = -info.height; // make image come out the right way up
 
 		// Don't write the file header's 2 dummy bytes
 		if (fwrite((uint8_t *)&file_header + 2, sizeof(file_header) - 2, 1, fp) != 1 ||
 			fwrite(&image_header, sizeof(image_header), 1, fp) != 1)
 			throw std::runtime_error("failed to write BMP file");
 
-		for (unsigned int i = 0; i < height; i++, ptr += stride)
+		for (unsigned int i = 0; i < info.height; i++, ptr += info.stride)
 		{
 			if (fwrite(ptr, line, 1, fp) != 1 || (pad != 0 && fwrite(padding, pad, 1, fp) != 1))
 				throw std::runtime_error("failed to write BMP file, row " + std::to_string(i));
@@ -119,7 +123,7 @@ void save_to_bmp(uint8_t* mem, unsigned int width, unsigned int height, unsigned
 	}
 }
 
-static int camera_get_still(uint8_t* buf, unsigned int* width, unsigned int* height, unsigned int* stride)
+static int camera_get_still(uint8_t* buf)
 {
 	for (;;)
 	{
@@ -142,9 +146,6 @@ static int camera_get_still(uint8_t* buf, unsigned int* width, unsigned int* hei
 			return -1;
 		}
 
-		Stream *stream = app.StillStream();
-		StreamInfo info = app.GetStreamInfo(stream);
-
 		if (info.pixel_format != libcamera::formats::RGB888)
 		{
 			fprintf(stderr, "Pixel format should be RGB\n");
@@ -157,12 +158,17 @@ static int camera_get_still(uint8_t* buf, unsigned int* width, unsigned int* hei
 
 		// Update parameters
 		memcpy(buf, image_data.data(), image_data.size());
-		*width = info.width;
-		*height = info.height;
-		*stride = info.stride;
 
 		return 0;
 	}
+}
+
+static unsigned int camera_get_width() {
+	return info.width;
+}
+
+static unsigned int camera_get_height() {
+	return info.height;
 }
 
 static void camera_exit()
@@ -172,22 +178,22 @@ static void camera_exit()
 
 int main(int argc, char *argv[])
 {
-	uint8_t *buf = (uint8_t *)malloc(15116544);
-	unsigned int width;
-	unsigned int height;
-	unsigned int stride;
-
 	// Start camera
 	camera_init();
 
+	// Set up buffer for image data
+	unsigned int buf_size = camera_get_width() * camera_get_height() * 3;
+	uint8_t *buf = (uint8_t *)malloc(buf_size);
+
 	// Get a still
-	if(camera_get_still(buf, &width, &height, &stride) == -1) {
+	if(camera_get_still(buf) == -1) {
 		fprintf(stderr, "Unable to get still image...\n");
-		exit(1);
+		camera_exit();
+		return 1;
 	}
 
 	// Save the still to an file
-	save_to_bmp(buf, width, height, stride, "foobar.bmp");
+	save_to_bmp(buf, "foobar.bmp");
 
 	// Exit camera
 	camera_exit();
