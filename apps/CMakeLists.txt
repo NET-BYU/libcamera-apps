@@ -22,7 +22,7 @@ target_link_libraries(libcamera-jpeg libcamera_app images)
 
 project(libcamera-ecen224)
 add_executable(libcamera-ecen224 libcamera_ecen224.cpp)
-target_link_libraries(libcamera-ecen224 libcamera_app images)
+target_link_libraries(libcamera-ecen224 libcamera_app)
 
 set(EXECUTABLES libcamera-still libcamera-vid libcamera-hello libcamera-raw libcamera-jpeg libcamera-ecen224)
 
