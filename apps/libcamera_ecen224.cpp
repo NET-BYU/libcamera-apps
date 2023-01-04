@@ -55,7 +55,7 @@ LibcameraJpegApp app;
 Stream *stream;
 StreamInfo info;
 
-void camera_init()
+int cam_init()
 {
 	StillOptions *options = app.GetOptions();
 	options->Parse(1, {NULL});
@@ -69,9 +69,11 @@ void camera_init()
 
 	stream = app.StillStream();
 	info = app.GetStreamInfo(stream);
+
+	return 0;
 }
 
-void save_to_bmp(uint8_t* mem, std::string const &filename)
+void cam_save_to_bmp(uint8_t* mem, std::string const &filename)
 {
 	FILE *fp = filename == "-" ? stdout : fopen(filename.c_str(), "wb");
 
@@ -116,7 +118,7 @@ void save_to_bmp(uint8_t* mem, std::string const &filename)
 	}
 }
 
-int camera_get_still(uint8_t* buf)
+int cam_get_still(uint8_t* buf)
 {
 	for (;;)
 	{
@@ -156,40 +158,43 @@ int camera_get_still(uint8_t* buf)
 	}
 }
 
-unsigned int camera_get_width() {
+unsigned int cam_get_width() 
+{
 	return info.width;
 }
 
-unsigned int camera_get_height() {
+unsigned int cam_get_height()
+{
 	return info.height;
 }
 
-void camera_exit()
+int cam_exit()
 {
 	app.StopCamera();
+	return 0;
 }
 
 int main(int argc, char *argv[])
 {
 	// Start camera
-	camera_init();
+	cam_init();
 
 	// Set up buffer for image data
-	unsigned int buf_size = camera_get_width() * camera_get_height() * 3;
+	unsigned int buf_size = cam_get_width() * cam_get_height() * 3;
 	uint8_t *buf = (uint8_t *)malloc(buf_size);
 
 	// Get a still
-	if(camera_get_still(buf) == -1) {
+	if(cam_get_still(buf) == -1) {
 		fprintf(stderr, "Unable to get still image...\n");
-		camera_exit();
+		cam_exit();
 		return 1;
 	}
 
 	// Save the still to an file
-	save_to_bmp(buf, "foobar.bmp");
+	cam_save_to_bmp(buf, "foobar.bmp");
 
 	// Exit camera
-	camera_exit();
+	cam_exit();
 
 	return 0;
 }
